@@ -6,7 +6,7 @@
         <groupId>com.lc</groupId>
         <artifactId>levin-cloud</artifactId>
         <version>0.0.1</version>
-        <relativePath>../Levin-Cloud/pom.xml</relativePath>
+        <relativePath>../levin-cloud/pom.xml</relativePath>
     </parent>
 
     <artifactId>levin-eureka</artifactId>
@@ -16,6 +16,11 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lc</groupId>
+            <artifactId>levin-common-logging-starter</artifactId>
+            <version>0.0.1</version>
         </dependency>
     </dependencies>
 </project>

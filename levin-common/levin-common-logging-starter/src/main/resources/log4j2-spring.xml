@@ -1,33 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--Configuration后面的status，这个用于设置log4j2自身内部的信息输出，可以不设置，当设置成trace时，你会看到log4j2内部各种详细输出-->
 <!--monitorInterval：Log4j能够自动检测修改配置 文件和重新配置本身，设置间隔秒数-->
-<Configuration monitorInterval="5">
+<configuration monitorInterval="5">
     <!--日志级别以及优先级排序: OFF > FATAL > ERROR > WARN > INFO > DEBUG > TRACE > ALL -->
 
     <!--变量配置-->
     <Properties>
         <!-- 格式化输出：%date表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度 %msg：日志消息，%n是换行符-->
         <!-- %logger{36} 表示 Logger 名字最长36个字符 -->
-        <property name="LOG_PATTERN" value="%d [%X{X-B3-TraceId},%X{X-B3-SpanId},%X{X-B3-ParentSpanId},%X{X-Span-Export}] %-5p %c:%L [%t] - %m%n"/>
+<!--        <property name="LOG_PATTERN" value="%date{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />-->
+        <Property name="SERVER_NAME" value="${spring:spring.application.name}"/>
+        <property name="LOG_PATTERN" value="%d [%X{X-B3-TraceId},%X{X-B3-SpanId},%X{X-B3-ParentSpanId},%X{X-Span-Export}] %red{${SERVER_NAME}} %highlight{%-5p} %blue{%c}:%L [%t] - %m%n"/>
         <!-- 定义日志存储的路径，不要配置相对路径 -->
-        <property name="FILE_PATH" value="./log/${bundle:application:spring.application.name}" />
-        <property name="FILE_NAME" value="${bundle:application:spring.application.name}" />
+        <property name="FILE_PATH" value="./log/${SERVER_NAME}" />
+        <property name="FILE_NAME" value="${SERVER_NAME}" />
     </Properties>
 
-    <Appenders>
+    <appenders>
 
         <console name="Console" target="SYSTEM_OUT">
             <!--输出日志的格式-->
-            <PatternLayout pattern="${LOG_PATTERN}"/>
-            <!--阈值过滤器-->
+            <PatternLayout pattern="${LOG_PATTERN}" disableAnsi="false"/>
             <!--控制台只输出level及其以上级别的信息（onMatch），其他的直接拒绝（onMismatch）-->
             <ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="DENY"/>
         </console>
 
+        <!--文件会打印出所有信息，这个log每次运行程序会自动清空，由append属性决定，适合临时测试用-->
+        <!--<File name="Filelog" fileName="${FILE_PATH}/test.log" append="false">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+        </File>-->
+
         <!-- 这个会打印出所有的info及以下级别的信息，每次大小超过size，则这size大小的日志会自动存入按年份-月份建立的文件夹下面并进行压缩，作为存档-->
         <RollingFile name="RollingFileInfo" fileName="${FILE_PATH}/info.log" filePattern="${FILE_PATH}/${FILE_NAME}-INFO-%d{yyyy-MM-dd}_%i.log.gz">
             <!--控制台只输出level及以上级别的信息（onMatch），其他的直接拒绝（onMismatch）-->
-            <ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="DENY"/>
+            <Filters>
+                <ThresholdFilter level="warn" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
             <PatternLayout pattern="${LOG_PATTERN}"/>
             <Policies>
                 <!--interval属性用来指定多久滚动一次，默认是1 hour-->
@@ -41,7 +50,10 @@
         <!-- 这个会打印出所有的warn及以下级别的信息，每次大小超过size，则这size大小的日志会自动存入按年份-月份建立的文件夹下面并进行压缩，作为存档-->
         <RollingFile name="RollingFileWarn" fileName="${FILE_PATH}/warn.log" filePattern="${FILE_PATH}/${FILE_NAME}-WARN-%d{yyyy-MM-dd}_%i.log.gz">
             <!--控制台只输出level及以上级别的信息（onMatch），其他的直接拒绝（onMismatch）-->
-            <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
+            <Filters>
+                <ThresholdFilter level="error" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
             <PatternLayout pattern="${LOG_PATTERN}"/>
             <Policies>
                 <!--interval属性用来指定多久滚动一次，默认是1 hour-->
@@ -60,38 +72,42 @@
             <Policies>
                 <!--interval属性用来指定多久滚动一次，默认是1 hour-->
                 <TimeBasedTriggeringPolicy interval="1"/>
-                <SizeBasedTriggeringPolicy size="10MB"/>
+                <SizeBasedTriggeringPolicy size="1MB"/>
             </Policies>
             <!-- DefaultRolloverStrategy属性如不设置，则默认为最多同一文件夹下7个文件开始覆盖-->
             <DefaultRolloverStrategy max="15"/>
         </RollingFile>
-
         <!-- kafka配置-->
-<!--        <Kafka name="Kafka" topic="log-event" ignoreExceptions="true" syncSend="true">-->
-<!--            <PatternLayout pattern="${LOG_PATTERN}"/>-->
-<!--            <Property name="bootstrap.servers">192.168.100.162:9092</Property>-->
-<!--            <Property name="max.block.ms">2000</Property>-->
-<!--        </Kafka>-->
-<!--        <RollingFile name="failoverKafkaLog"-->
-<!--                     fileName="${FILE_PATH}/failoverKafka/request.log"-->
-<!--                     filePattern="${FILE_PATH}/failoverKafka/request.%d{yyyy-MM-dd}.log">-->
-<!--            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>-->
-<!--            <PatternLayout pattern="${LOG_PATTERN}"/>-->
-<!--            <Policies>-->
-<!--                <TimeBasedTriggeringPolicy />-->
-<!--            </Policies>-->
-<!--        </RollingFile>-->
-<!--        <Failover name="Failover" primary="Kafka" retryIntervalSeconds="600">-->
-<!--            <Failovers>-->
-<!--                <AppenderRef ref="failoverKafkaLog"/>-->
-<!--            </Failovers>-->
-<!--        </Failover>-->
-
-    </Appenders>
+        <Kafka name="Kafka" topic="log-event" ignoreExceptions="false">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Property name="bootstrap.servers">192.168.100.162:9092</Property>
+            <Property name="max.block.ms">5000</Property>
+        </Kafka>
+        <RollingFile name="failoverKafkaLog"
+                     fileName="${FILE_PATH}/failoverKafka/fail.log"
+                     filePattern="${FILE_PATH}/failoverKafka/request.%d{yyyy-MM-dd}.log">
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+            </Policies>
+        </RollingFile>
+        <Failover name="Failover" primary="Kafka" retryIntervalSeconds="600">
+            <Failovers>
+                <AppenderRef ref="failoverKafkaLog"/>
+<!--                <AppenderRef ref="RollingFileError" />-->
+<!--                <AppenderRef ref="RollingFileWarn" />-->
+<!--                <AppenderRef ref="RollingFileInfo" />-->
+            </Failovers>
+        </Failover>
+        <Async name="kafkaLogger">
+            <appender-ref ref="Failover"/>
+        </Async>
+    </appenders>
 
     <!--Logger节点用来单独指定日志的形式，比如要为指定包下的class指定不同的日志级别等。-->
     <!--然后定义loggers，只有定义了logger并引入的appender，appender才会生效-->
-    <Loggers>
+    <loggers>
 
         <!--过滤掉spring和mybatis的一些无用的DEBUG信息-->
         <logger name="org.mybatis" level="info" additivity="false">
@@ -102,16 +118,19 @@
         <logger name="org.springframework" level="info" additivity="false">
             <AppenderRef ref="Console"/>
         </logger>
-        <logger name="org.apache.kafka" level="INFO"/>
+<!--        <logger name="org.apache.kafka" level="INFO" />-->
 
-        <!--Root节点用来指定项目的根日志，如果没有单独指定Logger，那么就会默认使用该Root日志输出-->
-        <Root level="info">
+        <root level="info">
             <appender-ref ref="Console"/>
-            <appender-ref ref="RollingFileInfo"/>
-            <appender-ref ref="RollingFileWarn"/>
-            <appender-ref ref="RollingFileError"/>
-<!--            <appender-ref ref="Kafka"/>-->
-        </Root>
-    </Loggers>
+<!--            <appender-ref ref="Filelog"/>        -->
+<!--            <appender-ref ref="RollingFileInfo"/>-->
+<!--            <appender-ref ref="RollingFileWarn"/>-->
+<!--            <appender-ref ref="RollingFileError"/>-->
+            <!--<appender-ref ref="kafkaLogger"/>-->
+            <appender-ref ref="RollingFileInfo" />
+            <appender-ref ref="RollingFileWarn" />
+            <appender-ref ref="RollingFileError" />
+        </root>
+    </loggers>
 
-</Configuration>
+</configuration>
