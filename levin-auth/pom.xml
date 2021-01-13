@@ -6,7 +6,7 @@
         <groupId>com.lc</groupId>
         <artifactId>levin-cloud</artifactId>
         <version>0.0.1</version>
-        <relativePath>../Levin-Cloud/pom.xml</relativePath>
+        <relativePath>../levin-cloud/pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -59,6 +59,11 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-sleuth-zipkin</artifactId>
             <version>${zipkin-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lc</groupId>
+            <artifactId>levin-common-logging-starter</artifactId>
+            <version>0.0.1</version>
         </dependency>
     </dependencies>
 

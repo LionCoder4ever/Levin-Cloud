@@ -13,7 +13,7 @@
         <module>../levin-admin</module>
         <module>../levin-eureka</module>
         <module>../levin-account</module>
-        <module>../levin-common-logging</module>
+        <module>../levin-common</module>
     </modules>
 
     <name>levin-cloud</name>
@@ -70,11 +70,6 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-zipkin</artifactId>
             <version>${zipkin-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.lc</groupId>
-            <artifactId>levin-common-logging</artifactId>
-            <version>0.0.1</version>
         </dependency>
     </dependencies>
 
