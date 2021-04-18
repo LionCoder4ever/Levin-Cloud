@@ -14,6 +14,8 @@
         <module>../levin-eureka</module>
         <module>../levin-account</module>
         <module>../levin-common</module>
+        <module>../levin-gateway-session</module>
+        <module>../levin-account-session</module>
     </modules>
 
     <name>levin-cloud</name>
